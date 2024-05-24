@@ -94,7 +94,7 @@ app.put("/update/:id", async (req, res) => {
   try {
     await new Promise((resolve, reject) => {
       connector.update(
-        "scoreStudent", {
+        "project.scorestudent", {
           first_name: first_name,
           last_name: last_name,
           math_score: math_score,
@@ -159,7 +159,7 @@ app.get("/search/:id", async (req, res) => {
   const studentId = req.params.id;
 
   try {
-    connector.searchById("scorestudent", studentId, (err, result) => {
+    connector.searchById("project.scorestudent", studentId, (err, result) => {
       if (err) {
         console.error("Error searching data: " + err.stack);
         return res.status(400).json({
@@ -211,7 +211,7 @@ app.post("/create", async (req, res) => {
 
       await new Promise((resolve, reject) => {
         connector.insert(
-          "scoreStudent", {
+          "project.scorestudent", {
             student_id: student_id,
             first_name: first_name,
             last_name: last_name,
@@ -282,7 +282,7 @@ app.post("/insertData", async (req, res) => {
 
     await new Promise((resolve, reject) => {
       connector.insert(
-        "scoreStudent", {
+        "project.scorestudent", {
           student_id: student_id,
           first_name: first_name,
           last_name: last_name,
