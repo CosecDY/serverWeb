@@ -1,11 +1,12 @@
-const express = require("express");
-const cors = require("cors");
+var express = require('express')
+var cors = require('cors')
+const port = process.env.PORT || 5000
 const MySQLConnector = require("./MySQLConnector");
 
-const app = express();
-const port = 3000;
-app.use(express.json());
-app.use(cors());
+var app = express()
+app.use(cors())
+app.use(express.json())
+
 
 const connector = new MySQLConnector({
   host: 'seniorproject.c3ssu4aw8v1d.ap-southeast-2.rds.amazonaws.com',
@@ -19,45 +20,26 @@ const connector = new MySQLConnector({
   
 });
 
+connector.connect(err => {
+  if (err) {
+    console.error('Database connection failed: ' + err.stack);
+    return;
+  }
+  console.log('Connected to database as id ' + connector.threadId);
+});
+
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-connector.connect();
-
-app.get("/readData", async (req, res) => {
-  try {
-    connector.query("SELECT * FROM project.scorestudent", (err, result, fields) => {
-      if (err) {
-        console.error("Error reading data: " + err.stack);
-        return res.status(400).json({
-          message: "Error fetching users"
-        });
-      }
-      console.log("Data received from MySQL:");
-      console.log(result);
-      return res.status(200).json(result);
-    });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({
-      message: "Internal Server Error"
-    });
-  }
-});
-
-app.get("/data", (req, res) => {
-  const sql = "SELECT * FROM project.scorestudent";
-
-  connection.query(sql, (error, results, fields) => {
-    if (error) {
-      console.error("Error fetching data:", error);
-      res.status(500).json({
-        error: "Error fetching data"
-      });
-      return;
+// use for get all data in table
+app.get('/getdata', (req, res) => {
+  connector.query('SELECT * FROM project.scorestudent', (err, results) => {
+    if (err) {
+      res.status(500).send(err);
+    } else {
+      res.json(results);
     }
-    res.json(results);
   });
 });
 
@@ -87,7 +69,7 @@ app.put("/update/:id", async (req, res) => {
   try {
     await new Promise((resolve, reject) => {
       connector.update(
-        "project.scorestudent", {
+        "project.scoreStudent", {
           first_name: first_name,
           last_name: last_name,
           math_score: math_score,
@@ -204,8 +186,8 @@ app.post("/create", async (req, res) => {
 
       await new Promise((resolve, reject) => {
         connector.insert(
-          "scoreStudent", {
-            student_id: student_id,
+          "project.scorestudent", {
+            id: student_id,
             first_name: first_name,
             last_name: last_name,
             math_score: math_score,
@@ -238,6 +220,7 @@ app.post("/create", async (req, res) => {
     });
   }
 });
+
 
 app.post("/insertData", async (req, res) => {
   const student = req.body;
@@ -275,7 +258,7 @@ app.post("/insertData", async (req, res) => {
 
     await new Promise((resolve, reject) => {
       connector.insert(
-        "scoreStudent", {
+        "project.scoreStudent", {
           student_id: student_id,
           first_name: first_name,
           last_name: last_name,
@@ -326,7 +309,7 @@ app.get('/queryData', (req, res) => {
     });
   }
 
-  const query = `SELECT * FROM scorestudent WHERE ${scoreType} = ?`;
+  const query = `SELECT * FROM project.scorestudent WHERE ${scoreType} = ?`;
   connector.query(query, [scoreValue], (error, results) => {
     if (error) {
       console.error('Error executing query:', error);
@@ -348,24 +331,29 @@ app.get('/queryData', (req, res) => {
 app.post('/insert_user', (req, res) => {
   const userData = req.body;
   const values = [
-      userData.oauth_provider,
-      userData.oauth_uid,
-      userData.first_name,
-      userData.last_name,
-      userData.email,
-      userData.picture
+    userData.oauth_provider,
+    userData.oauth_uid,
+    userData.first_name,
+    userData.last_name,
+    userData.email,
+    userData.picture
   ];
 
   connector.insert('users', values, (error, results) => {
-      if (error) {
-          res.status(500).json({ message: 'An error occurred while saving data in the database.' });
-      } else {
-          res.status(200).json({ message: 'successfully created!' });
-      }
+    if (error) {
+      res.status(500).json({
+        message: 'An error occurred while saving data in the database.'
+      });
+    } else {
+      res.status(200).json({
+        message: 'successfully created!'
+      });
+    }
   });
 });
 
 app.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
+  console.log(`Server is running at senior-production-43fc.up.railway.app`);
 });
 
+module.exports = app
