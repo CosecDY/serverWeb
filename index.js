@@ -32,14 +32,39 @@ app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-// use for get all data in table
-app.get('/getdata', (req, res) => {
-  connector.query('SELECT * FROM project.scorestudent', (err, results) => {
-    if (err) {
-      res.status(500).send(err);
-    } else {
-      res.json(results);
+app.get("/readData", async (req, res) => {
+  try {
+    connector.query("SELECT * FROM project.scorestudent", (err, result, fields) => {
+      if (err) {
+        console.error("Error reading data: " + err.stack);
+        return res.status(400).json({
+          message: "Error fetching users"
+        });
+      }
+      console.log("Data received from MySQL:");
+      console.log(result);
+      return res.status(200).json(result);
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      message: "Internal Server Error"
+    });
+  }
+});
+
+app.get("/data", (req, res) => {
+  const sql = "SELECT * FROM project.scorestudent";
+
+  connection.query(sql, (error, results, fields) => {
+    if (error) {
+      console.error("Error fetching data:", error);
+      res.status(500).json({
+        error: "Error fetching data"
+      });
+      return;
     }
+    res.json(results);
   });
 });
 
@@ -69,7 +94,7 @@ app.put("/update/:id", async (req, res) => {
   try {
     await new Promise((resolve, reject) => {
       connector.update(
-        "project.scoreStudent", {
+        "scoreStudent", {
           first_name: first_name,
           last_name: last_name,
           math_score: math_score,
@@ -134,7 +159,7 @@ app.get("/search/:id", async (req, res) => {
   const studentId = req.params.id;
 
   try {
-    connector.searchById("project.scorestudent", studentId, (err, result) => {
+    connector.searchById("scorestudent", studentId, (err, result) => {
       if (err) {
         console.error("Error searching data: " + err.stack);
         return res.status(400).json({
@@ -186,8 +211,8 @@ app.post("/create", async (req, res) => {
 
       await new Promise((resolve, reject) => {
         connector.insert(
-          "project.scorestudent", {
-            id: student_id,
+          "scoreStudent", {
+            student_id: student_id,
             first_name: first_name,
             last_name: last_name,
             math_score: math_score,
@@ -220,7 +245,6 @@ app.post("/create", async (req, res) => {
     });
   }
 });
-
 
 app.post("/insertData", async (req, res) => {
   const student = req.body;
@@ -258,7 +282,7 @@ app.post("/insertData", async (req, res) => {
 
     await new Promise((resolve, reject) => {
       connector.insert(
-        "project.scoreStudent", {
+        "scoreStudent", {
           student_id: student_id,
           first_name: first_name,
           last_name: last_name,
@@ -331,24 +355,20 @@ app.get('/queryData', (req, res) => {
 app.post('/insert_user', (req, res) => {
   const userData = req.body;
   const values = [
-    userData.oauth_provider,
-    userData.oauth_uid,
-    userData.first_name,
-    userData.last_name,
-    userData.email,
-    userData.picture
+      userData.oauth_provider,
+      userData.oauth_uid,
+      userData.first_name,
+      userData.last_name,
+      userData.email,
+      userData.picture
   ];
 
   connector.insert('users', values, (error, results) => {
-    if (error) {
-      res.status(500).json({
-        message: 'An error occurred while saving data in the database.'
-      });
-    } else {
-      res.status(200).json({
-        message: 'successfully created!'
-      });
-    }
+      if (error) {
+          res.status(500).json({ message: 'An error occurred while saving data in the database.' });
+      } else {
+          res.status(200).json({ message: 'successfully created!' });
+      }
   });
 });
 
