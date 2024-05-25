@@ -3,11 +3,6 @@ var cors = require('cors')
 const port = process.env.PORT || 5000
 const MySQLConnector = require("./MySQLConnector");
 
-//////////////////////////////////////////////////////////
-const {OAuth2Client} = require('google-auth-library');
-const client = new OAuth2Client('176915472690-smathhsfr749uikeuig0in7dqvvvjfi5.apps.googleusercontent.com');
-
-//////////////////////////////////////////////////////////
 var app = express()
 app.use(cors())
 app.use(express.json())
@@ -36,25 +31,6 @@ connector.connect(err => {
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
-//////////////////////////////////////////////
-async function verifyToken(token) {
-  const ticket = await client.verifyIdToken({
-      idToken: token,
-      audience: '176915472690-smathhsfr749uikeuig0in7dqvvvjfi5.apps.googleusercontent.com',  
-  });
-  const payload = ticket.getPayload();
-  const userid = payload['sub'];
-  console.log('User ID: ' + userid);
-}
-app.post('/tokensignin', (req, res) => {
-  const token = req.body.idtoken;
-  verifyToken(token).then(() => {
-      res.status(200).send('Login successful');
-  }).catch((error) => {
-      res.status(400).send('Invalid ID token');
-  });
-});
-//////////////////////////////////////////////
 
 app.get("/readData", async (req, res) => {
   try {
